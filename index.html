@@ -397,6 +397,7 @@ h1 {
   let boardCount = 0;
   let isLoading = false;
   let saveTimer = null;
+  let isEditing = false;
 
 function scheduleSave() {
   clearTimeout(saveTimer);
@@ -410,11 +411,19 @@ function scheduleSave() {
     cell.className = className;
     cell.textContent = text || "";
 
-    if (editable) {
-      cell.contentEditable = "true";
-      cell.spellcheck = false;
-      cell.dataset.placeholder = placeholder;
-    }
+   if (editable) {
+  cell.contentEditable = "true";
+  cell.spellcheck = false;
+  cell.dataset.placeholder = placeholder;
+
+  cell.addEventListener("focus", () => {
+    isEditing = true;
+  });
+
+  cell.addEventListener("blur", () => {
+    isEditing = false;
+  });
+}
 
     return cell;
   }
@@ -571,8 +580,11 @@ function scheduleSave() {
 
   searchInput.addEventListener("input", applySearch);
 
-  onSnapshot(boardDoc, (snapshot) => {
-    isLoading = true;
+onSnapshot(boardDoc, (snapshot) => {
+
+  if (isEditing) return;
+
+  isLoading = true;
     clearBoards();
 
     const data = snapshot.data()?.boards || [];
