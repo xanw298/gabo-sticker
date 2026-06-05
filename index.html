@@ -356,11 +356,15 @@ function saveBoards() {
 }
 
 function loadBoards() {
-  const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
 
-  saved.forEach((item) => {
-    createBoard(item);
-  });
+    saved.forEach((item) => {
+      createBoard(item);
+    });
+  } catch (error) {
+    localStorage.removeItem(STORAGE_KEY);
+  }
 }
 
     function makeCell(text, className, editable = false, placeholder = "") {
@@ -474,7 +478,10 @@ function loadBoards() {
   }
 }
 
-    addButton.addEventListener("click", () => createBoard());
+   addButton.addEventListener("click", () => {
+  createBoard();
+});
+
 searchInput.addEventListener("input", applySearch);
 
 loadBoards();
