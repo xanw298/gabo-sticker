@@ -334,6 +334,34 @@
     const addButton = document.querySelector("#addBoard");
     const searchInput = document.querySelector("#searchBoards");
     let boardCount = 0;
+    const STORAGE_KEY = "gaboStickerBoards";
+
+function saveBoards() {
+  const data = [...document.querySelectorAll(".board")].map((board) => {
+    const rows = [...board.querySelectorAll("tr")];
+
+    return {
+      nickname: rows[0].querySelector(".editable")?.textContent || "",
+      values: rows.slice(1).map((row) => {
+        const cells = row.querySelectorAll(".editable");
+        return {
+          have: cells[0]?.textContent || "",
+          need: cells[1]?.textContent || ""
+        };
+      })
+    };
+  });
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function loadBoards() {
+  const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+
+  saved.forEach((item) => {
+    createBoard(item);
+  });
+}
 
     function makeCell(text, className, editable = false, placeholder = "") {
       const cell = document.createElement("td");
@@ -374,37 +402,77 @@
       noResults.classList.toggle("visible", Boolean(query) && boardItems.length > 0 && visibleCount === 0);
     }
 
-    function createBoard() {
-      boardCount += 1;
-      emptyState?.remove();
+    function createBoard(savedData = null) {
+  boardCount += 1;
+  emptyState?.remove();
 
-      const board = document.createElement("article");
-      board.className = "board";
-      board.dataset.nickname = "";
+  const board = document.createElement("article");
+  board.className = "board";
+  board.dataset.nickname = savedData?.nickname || "";
 
-      const top = document.createElement("div");
-      top.className = "board-top";
+  const top = document.createElement("div");
+  top.className = "board-top";
 
-      const title = document.createElement("h2");
-      title.className = "board-title";
-      title.textContent = `스티커 표 ${boardCount}`;
-      top.append(title);
+  const title = document.createElement("h2");
+  title.className = "board-title";
+  title.textContent = savedData?.nickname || `스티커 표 ${boardCount}`;
+  top.append(title);
 
-      const wrap = document.createElement("div");
-      wrap.className = "table-wrap";
+  const wrap = document.createElement("div");
+  wrap.className = "table-wrap";
 
-      const table = document.createElement("table");
-      table.setAttribute("aria-label", `스티커 표 ${boardCount}`);
-      table.innerHTML = "<colgroup><col><col><col></colgroup>";
+  const table = document.createElement("table");
+  table.setAttribute("aria-label", `스티커 표 ${boardCount}`);
+  table.innerHTML = "<colgroup><col><col><col></colgroup>";
 
-      const firstRow = document.createElement("tr");
-      const titleCell = makeCell("", "editable", true, "닉네임");
-      firstRow.append(
-        titleCell,
-        makeCell("보유 중인 번호", "fixed"),
-        makeCell("필요한 번호", "fixed")
-      );
-      table.append(firstRow);
+  const firstRow = document.createElement("tr");
+  const titleCell = makeCell(savedData?.nickname || "", "editable", true, "닉네임");
+  firstRow.append(
+    titleCell,
+    makeCell("보유 중인 번호", "fixed"),
+    makeCell("필요한 번호", "fixed")
+  );
+  table.append(firstRow);
+
+  function updateNickname() {
+    const boardTitle = titleCell.textContent.trim();
+    board.dataset.nickname = boardTitle;
+    title.textContent = boardTitle || `스티커 표 ${boardCount}`;
+    applySearch();
+    saveBoards();
+  }
+
+  titleCell.addEventListener("input", updateNickname);
+  titleCell.addEventListener("keyup", updateNickname);
+  titleCell.addEventListener("compositionend", updateNickname);
+  titleCell.addEventListener("blur", updateNickname);
+
+  fixedLabels.forEach((label, index) => {
+    const row = document.createElement("tr");
+    const haveCell = makeCell(savedData?.values?.[index]?.have || "", "editable", true, "입력");
+    const needCell = makeCell(savedData?.values?.[index]?.need || "", "editable", true, "입력");
+
+    haveCell.addEventListener("input", saveBoards);
+    needCell.addEventListener("input", saveBoards);
+
+    row.append(
+      makeCell(label, "fixed"),
+      haveCell,
+      needCell
+    );
+    table.append(row);
+  });
+
+  wrap.append(table);
+  board.append(top, wrap);
+  boards.append(board);
+  applySearch();
+
+  if (!savedData) {
+    saveBoards();
+    titleCell.focus();
+  }
+}
 
       function updateNickname() {
         const boardTitle = titleCell.textContent.trim();
@@ -436,8 +504,10 @@
       titleCell.focus();
     }
 
-    addButton.addEventListener("click", createBoard);
-    searchInput.addEventListener("input", applySearch);
+    addButton.addEventListener("click", () => createBoard());
+searchInput.addEventListener("input", applySearch);
+
+loadBoards();
   </script>
 </body>
 </html>
