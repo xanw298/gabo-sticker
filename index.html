@@ -398,6 +398,13 @@ h1 {
   let isLoading = false;
   let saveTimer = null;
 
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    saveBoards();
+  }, 500);
+}
+
   function makeCell(text, className, editable = false, placeholder = "") {
     const cell = document.createElement("td");
     cell.className = className;
@@ -521,7 +528,7 @@ h1 {
       board.dataset.nickname = boardTitle;
       title.textContent = boardTitle || `스티커 표 ${boardCount}`;
       applySearch();
-      saveBoards();
+      scheduleSave();
     }
 
     titleCell.addEventListener("input", updateNickname);
@@ -534,8 +541,8 @@ h1 {
       const haveCell = makeCell(savedData?.values?.[index]?.have || "", "editable", true, "입력");
       const needCell = makeCell(savedData?.values?.[index]?.need || "", "editable", true, "입력");
 
-      haveCell.addEventListener("input", saveBoards);
-      needCell.addEventListener("input", saveBoards);
+      haveCell.addEventListener("input", scheduleSave);
+      needCell.addEventListener("input", scheduleSave);
       haveCell.addEventListener("blur", saveBoardsNow);
       needCell.addEventListener("blur", saveBoardsNow);
 
