@@ -474,36 +474,6 @@ function loadBoards() {
   }
 }
 
-      function updateNickname() {
-        const boardTitle = titleCell.textContent.trim();
-        board.dataset.nickname = boardTitle;
-        title.textContent = boardTitle || `스티커 표 ${boardCount}`;
-        applySearch();
-      }
-
-      titleCell.addEventListener("input", updateNickname);
-      titleCell.addEventListener("keyup", updateNickname);
-      titleCell.addEventListener("compositionend", updateNickname);
-      titleCell.addEventListener("blur", updateNickname);
-
-      fixedLabels.forEach((label) => {
-        const row = document.createElement("tr");
-        row.append(
-          makeCell(label, "fixed"),
-          makeCell("", "editable", true, "입력"),
-          makeCell("", "editable", true, "입력")
-        );
-        table.append(row);
-      });
-
-      wrap.append(table);
-      board.append(top, wrap);
-      boards.append(board);
-      applySearch();
-
-      titleCell.focus();
-    }
-
     addButton.addEventListener("click", () => createBoard());
 searchInput.addEventListener("input", applySearch);
 
