@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>갑오마을 스티커 창고</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f2f2f7;
+      --panel: #ffffff;
+      --ink: #1c1c1e;
+      --muted: #8e8e93;
+      --line: #d1d1d6;
+      --head: #ffffff;
+      --fixed: #ffffff;
+      --editable: #ffffff;
+      --field: #e5e5ea;
+      --accent: #007aff;
+      --accent-strong: #006adc;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    .app {
+      width: min(980px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 48px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .title-area {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 36px);
+      line-height: 1.1;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .search-box {
+      position: relative;
+      flex: 1 1 240px;
+      max-width: 360px;
+    }
+
+    .search-box svg {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      width: 17px;
+      height: 17px;
+      color: var(--muted);
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    .search-box input {
+      width: 100%;
+      height: 38px;
+      border: 0;
+      border-radius: 10px;
+      padding: 0 12px 0 38px;
+      color: var(--ink);
+      background: var(--field);
+      font: inherit;
+      outline: none;
+      transition: box-shadow 160ms ease, background 160ms ease;
+    }
+
+    .search-box input:focus {
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.18);
+    }
+
+    .add-button {
+      flex: 0 0 auto;
+      display: inline-grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border: 0;
+      border-radius: 50%;
+      color: var(--accent);
+      background: rgba(0, 122, 255, 0.12);
+      box-shadow: none;
+      cursor: pointer;
+      transition: transform 160ms ease, background 160ms ease;
+    }
+
+    .add-button:hover {
+      transform: translateY(-1px);
+      background: rgba(0, 122, 255, 0.18);
+    }
+
+    .add-button:active {
+      transform: translateY(0);
+    }
+
+    .add-button svg {
+      width: 26px;
+      height: 26px;
+      stroke-width: 2.8;
+    }
+
+    #boards {
+      display: grid;
+      gap: 24px;
+    }
+
+    .board {
+      background: var(--panel);
+      border: 0;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .board-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px 10px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .board-title {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.25;
+      text-transform: uppercase;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      min-width: 620px;
+      border-collapse: separate;
+      border-spacing: 0;
+      table-layout: fixed;
+    }
+
+    col:first-child {
+      width: 26%;
+    }
+
+    col:nth-child(2),
+    col:nth-child(3) {
+      width: 37%;
+    }
+
+    td {
+      height: 46px;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      padding: 9px 14px;
+      vertical-align: middle;
+      font-size: 16px;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    td + td {
+      border-left: 1px solid var(--line);
+    }
+
+    tr:first-child td {
+      height: 48px;
+      background: var(--head);
+      font-weight: 600;
+      text-align: center;
+    }
+
+    td.fixed {
+      background: var(--fixed);
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    tr:not(:first-child) td.fixed {
+      color: #3a3a3c;
+    }
+
+    td.editable {
+      background: var(--editable);
+      cursor: text;
+    }
+
+    td.editable:focus {
+      outline: 0;
+      background: #f7fbff;
+      box-shadow: inset 0 0 0 2px rgba(0, 122, 255, 0.24);
+    }
+
+    td[contenteditable="true"]:empty::before {
+      content: attr(data-placeholder);
+      color: #c7c7cc;
+    }
+
+    .empty {
+      display: grid;
+      place-items: center;
+      min-height: 220px;
+      border: 0;
+      border-radius: 12px;
+      color: var(--muted);
+      background: var(--panel);
+      text-align: center;
+      padding: 28px;
+      box-shadow: var(--shadow);
+    }
+
+    .no-results {
+      display: none;
+      place-items: center;
+      min-height: 160px;
+      border: 0;
+      border-radius: 12px;
+      color: var(--muted);
+      background: var(--panel);
+      text-align: center;
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .no-results.visible {
+      display: grid;
+    }
+
+    @media (max-width: 640px) {
+      .app {
+        width: min(100% - 20px, 1120px);
+        padding-top: 20px;
+      }
+
+      header {
+        align-items: flex-start;
+      }
+
+      .title-row {
+        align-items: stretch;
+      }
+
+      .search-box {
+        flex-basis: 100%;
+        max-width: none;
+      }
+
+      .add-button {
+        width: 48px;
+        height: 48px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div class="title-area">
+        <div class="title-row">
+          <h1>갑오마을 스티커 창고</h1>
+          <label class="search-box" aria-label="닉네임 검색">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+              <circle cx="11" cy="11" r="7"></circle>
+              <path d="m16 16 4 4"></path>
+            </svg>
+            <input id="searchBoards" type="search" placeholder="닉네임 검색">
+          </label>
+        </div>
+      </div>
+      <button class="add-button" type="button" id="addBoard" aria-label="표 추가" title="표 추가">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+          <path d="M12 5v14"></path>
+          <path d="M5 12h14"></path>
+        </svg>
+      </button>
+    </header>
+
+    <section id="boards" aria-live="polite">
+      <div class="empty" id="emptyState">아직 표가 없습니다. + 버튼을 눌러 새 표를 만드세요.</div>
+      <div class="no-results" id="noResults">검색한 닉네임의 표가 없습니다.</div>
+    </section>
+  </main>
+
+  <script>
+    const fixedLabels = [
+      "야생", "물속", "던전", "메인", "숲속", "화산", "어둠", "특별", "놀이", "강철",
+      "요정", "바다", "유령", "빛아래", "하늘", "여름", "겨울", "오전", "오후", "밤"
+    ];
+
+    const boards = document.querySelector("#boards");
+    const emptyState = document.querySelector("#emptyState");
+    const noResults = document.querySelector("#noResults");
+    const addButton = document.querySelector("#addBoard");
+    const searchInput = document.querySelector("#searchBoards");
+    let boardCount = 0;
+
+    function makeCell(text, className, editable = false, placeholder = "") {
+      const cell = document.createElement("td");
+      cell.className = className;
+      cell.textContent = text;
+
+      if (editable) {
+        cell.contentEditable = "true";
+        cell.spellcheck = false;
+        cell.dataset.placeholder = placeholder;
+      }
+
+      return cell;
+    }
+
+    function normalizeText(value) {
+      return value.replace(/\s+/g, " ").trim().toLowerCase();
+    }
+
+    function getBoardNickname(board) {
+      const savedNickname = board.dataset.nickname || "";
+      const cellNickname = board.querySelector("tr:first-child .editable")?.textContent || "";
+      return savedNickname || cellNickname;
+    }
+
+    function applySearch() {
+      const query = normalizeText(searchInput.value);
+      const boardItems = [...document.querySelectorAll(".board")];
+      let visibleCount = 0;
+
+      boardItems.forEach((board) => {
+        const nickname = normalizeText(getBoardNickname(board));
+        const isVisible = !query || nickname.includes(query);
+        board.hidden = !isVisible;
+        if (isVisible) visibleCount += 1;
+      });
+
+      noResults.classList.toggle("visible", Boolean(query) && boardItems.length > 0 && visibleCount === 0);
+    }
+
+    function createBoard() {
+      boardCount += 1;
+      emptyState?.remove();
+
+      const board = document.createElement("article");
+      board.className = "board";
+      board.dataset.nickname = "";
+
+      const top = document.createElement("div");
+      top.className = "board-top";
+
+      const title = document.createElement("h2");
+      title.className = "board-title";
+      title.textContent = `스티커 표 ${boardCount}`;
+      top.append(title);
+
+      const wrap = document.createElement("div");
+      wrap.className = "table-wrap";
+
+      const table = document.createElement("table");
+      table.setAttribute("aria-label", `스티커 표 ${boardCount}`);
+      table.innerHTML = "<colgroup><col><col><col></colgroup>";
+
+      const firstRow = document.createElement("tr");
+      const titleCell = makeCell("", "editable", true, "닉네임");
+      firstRow.append(
+        titleCell,
+        makeCell("보유 중인 번호", "fixed"),
+        makeCell("필요한 번호", "fixed")
+      );
+      table.append(firstRow);
+
+      function updateNickname() {
+        const boardTitle = titleCell.textContent.trim();
+        board.dataset.nickname = boardTitle;
+        title.textContent = boardTitle || `스티커 표 ${boardCount}`;
+        applySearch();
+      }
+
+      titleCell.addEventListener("input", updateNickname);
+      titleCell.addEventListener("keyup", updateNickname);
+      titleCell.addEventListener("compositionend", updateNickname);
+      titleCell.addEventListener("blur", updateNickname);
+
+      fixedLabels.forEach((label) => {
+        const row = document.createElement("tr");
+        row.append(
+          makeCell(label, "fixed"),
+          makeCell("", "editable", true, "입력"),
+          makeCell("", "editable", true, "입력")
+        );
+        table.append(row);
+      });
+
+      wrap.append(table);
+      board.append(top, wrap);
+      boards.append(board);
+      applySearch();
+
+      titleCell.focus();
+    }
+
+    addButton.addEventListener("click", createBoard);
+    searchInput.addEventListener("input", applySearch);
+  </script>
+</body>
+</html>
